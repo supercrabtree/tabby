@@ -1,0 +1,100 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f6f8;
+  --bg-hover: #ededf0;
+  --bg-active: #e2e2e6;
+  --bg-drag-over: rgba(59, 130, 246, 0.06);
+  --card-bg: #f0f0f3;
+  --card-border: #e2e2e6;
+  --card-bg-hover: #e8e8ec;
+  --text-primary: #1a1a1a;
+  --text-secondary: #777777;
+  --text-muted: #aaaaaa;
+  --border: #e0e0e0;
+  --fold-line: #c8c8d0;
+  --anchor-color: #3b82f6;
+  --anchor-dimmed: rgba(59, 130, 246, 0.28);
+  --countdown-track: rgba(0, 0, 0, 0.06);
+  --countdown-bar: rgba(0, 0, 0, 0.13);
+  --recently-closed-bg: #f5f5f7;
+  --recently-closed-header: #eeeeef;
+  --close-btn: #999999;
+  --close-btn-hover: #ef4444;
+  --context-bg: #ffffff;
+  --context-border: #e0e0e0;
+  --context-hover: #f0f0f0;
+  --context-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --font-size: 0.75rem;
+  --row-height: 2rem;
+  --indent: 1.125rem;
+  --icon-size: 1rem;
+  --scrollbar-thumb: #cccccc;
+  --radius: 0.375rem;
+  --card-radius: 0.375rem;
+  --gap: 0.1875rem;
+  --sidebar-padding: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #181825;
+    --bg-secondary: #1e1e30;
+    --bg-hover: #262640;
+    --bg-active: #30304a;
+    --bg-drag-over: rgba(96, 165, 250, 0.08);
+    --card-bg: #222236;
+    --card-border: #2a2a40;
+    --card-bg-hover: #2a2a42;
+    --text-primary: #ccd0d8;
+    --text-secondary: #7a7a90;
+    --text-muted: #4a4a5e;
+    --border: #2a2a3e;
+    --fold-line: #3a3a50;
+    --anchor-color: #60a5fa;
+    --anchor-dimmed: rgba(96, 165, 250, 0.25);
+    --countdown-track: rgba(255, 255, 255, 0.04);
+    --countdown-bar: rgba(255, 255, 255, 0.10);
+    --recently-closed-bg: #161622;
+    --recently-closed-header: #1c1c2e;
+    --close-btn: #555566;
+    --close-btn-hover: #f87171;
+    --context-bg: #222236;
+    --context-border: #2e2e44;
+    --context-hover: #2a2a42;
+    --context-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    --scrollbar-thumb: #333348;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 19.2px;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}

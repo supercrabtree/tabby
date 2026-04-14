@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <polygon points="10,22 4,4 20,16" fill="context-fill" fill-opacity="context-fill-opacity"/>
+  <polygon points="38,22 44,4 28,16" fill="context-fill" fill-opacity="context-fill-opacity"/>
+  <circle cx="24" cy="28" r="16" fill="context-fill" fill-opacity="context-fill-opacity"/>
+  <circle cx="18" cy="25" r="2.5" fill="white"/>
+  <circle cx="30" cy="25" r="2.5" fill="white"/>
+  <polygon points="24,30 22,33 26,33" fill="white" opacity="0.8"/>
+</svg>
