@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { fileURLToPath, URL } from 'node:url';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [svelte()],
   base: './',
   build: {
@@ -9,4 +10,9 @@ export default defineConfig({
     emptyOutDir: true,
     target: 'firefox115',
   },
-});
+  resolve: mode === 'test' ? {
+    alias: {
+      'webextension-polyfill': fileURLToPath(new URL('./tests/mock-browser.ts', import.meta.url)),
+    },
+  } : undefined,
+}));

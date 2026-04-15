@@ -35,10 +35,38 @@
     if (hrs < 24) return `${hrs}h ago`;
     return `${Math.floor(hrs / 24)}d ago`;
   }
+
+  let panelHeight = $state(200);
+  let startY = 0;
+  let startHeight = 0;
+
+  function handleResizeStart(e: MouseEvent) {
+    e.preventDefault();
+    startY = e.clientY;
+    startHeight = panelHeight;
+    document.body.style.cursor = 'ns-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', handleResizeMove);
+    document.addEventListener('mouseup', handleResizeEnd);
+  }
+
+  function handleResizeMove(e: MouseEvent) {
+    panelHeight = Math.max(60, Math.min(500, startHeight + (startY - e.clientY)));
+  }
+
+  function handleResizeEnd() {
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    document.removeEventListener('mousemove', handleResizeMove);
+    document.removeEventListener('mouseup', handleResizeEnd);
+  }
 </script>
 
 {#if hasEntries}
   <div class="recently-closed">
+    {#if !collapsed}
+      <div class="resize-handle" onmousedown={handleResizeStart} role="separator"></div>
+    {/if}
     <button class="header" onclick={toggle}>
       <span class="chevron" class:expanded={!collapsed}>&#x203A;</span>
       <span class="header-text">Recently Closed</span>
@@ -46,7 +74,7 @@
     </button>
 
     {#if !collapsed}
-      <div class="entries">
+      <div class="entries" style:height="{panelHeight}px">
         {#each entries as entry (entry.id)}
           <button class="entry" onclick={() => handleReopen(entry.id)} title={entry.url}>
             <img
@@ -71,6 +99,22 @@
     flex-shrink: 0;
     background: var(--recently-closed-bg);
     border-top: 1px solid var(--border);
+    position: relative;
+  }
+
+  .resize-handle {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: ns-resize;
+    z-index: 10;
+    transition: background-color 150ms ease;
+  }
+
+  .resize-handle:hover {
+    background: var(--anchor-dimmed);
   }
 
   .header {
@@ -122,7 +166,6 @@
   }
 
   .entries {
-    max-height: 200px;
     overflow-y: auto;
   }
 

@@ -1,24 +1,21 @@
 <script lang="ts">
   import { getNextPosition } from '../../shared/tree-utils';
-  import { tabby, moveNode, createFolder } from '../store.svelte.ts';
+  import { tabby, moveNode, createFolder, clearDragState } from '../store.svelte.ts';
 
-  let dragOver = $state(false);
+  let dragOver = $derived(tabby.ui.dropZone === 'divider');
 
   function handleDragOver(e: DragEvent) {
     e.preventDefault();
     e.dataTransfer!.dropEffect = 'move';
-    dragOver = true;
-  }
-
-  function handleDragLeave() {
-    dragOver = false;
+    tabby.ui.dropTarget = null;
+    tabby.ui.dropZone = 'divider';
   }
 
   function handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
-    dragOver = false;
     const nodeId = e.dataTransfer?.getData('text/plain');
+    clearDragState();
     if (nodeId) {
       const pos = getNextPosition(tabby.data.nodes, null, 'permanent');
       moveNode(nodeId, null, pos, 'permanent');
@@ -36,7 +33,6 @@
   class:drag-over={dragOver}
   role="separator"
   ondragover={handleDragOver}
-  ondragleave={handleDragLeave}
   ondrop={handleDrop}
 >
   <div class="fold-line"></div>

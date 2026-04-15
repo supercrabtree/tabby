@@ -3,7 +3,7 @@
   import { getRootNodes, getChildren, getNextPosition } from '../shared/tree-utils';
   import {
     tabby, connect, isCollapsed, toggleCollapsed,
-    activateTab, closeTab, showContextMenu, hideContextMenu, moveNode,
+    activateTab, closeTab, showContextMenu, hideContextMenu, moveNode, clearDragState,
   } from './store.svelte.ts';
   import TreeNode from './components/TreeNode.svelte';
   import FoldDivider from './components/FoldDivider.svelte';
@@ -12,8 +12,8 @@
 
   let permanentNodes = $derived(getRootNodes(tabby.data.nodes, 'permanent'));
   let ephemeralNodes = $derived(getRootNodes(tabby.data.nodes, 'ephemeral'));
-  let permanentDragOver = $state(false);
-  let ephemeralDragOver = $state(false);
+  let permanentDragOver = $derived(tabby.ui.dropZone === 'permanent');
+  let ephemeralDragOver = $derived(tabby.ui.dropZone === 'ephemeral');
 
   $effect(() => {
     connect();
@@ -135,8 +135,8 @@
 
   function handlePermanentDrop(e: DragEvent) {
     e.preventDefault();
-    permanentDragOver = false;
     const nodeId = e.dataTransfer?.getData('text/plain');
+    clearDragState();
     if (nodeId) {
       moveNode(nodeId, null, getNextPosition(tabby.data.nodes, null, 'permanent'), 'permanent');
     }
@@ -144,10 +144,19 @@
 
   function handleEphemeralDrop(e: DragEvent) {
     e.preventDefault();
-    ephemeralDragOver = false;
     const nodeId = e.dataTransfer?.getData('text/plain');
+    clearDragState();
     if (nodeId) {
       moveNode(nodeId, null, getNextPosition(tabby.data.nodes, null, 'ephemeral'), 'ephemeral');
+    }
+  }
+
+  function handleSidebarDragLeave(e: DragEvent) {
+    const sidebar = e.currentTarget as HTMLElement;
+    const related = e.relatedTarget as Node | null;
+    if (!related || !sidebar.contains(related)) {
+      tabby.ui.dropTarget = null;
+      tabby.ui.dropZone = null;
     }
   }
 
@@ -169,14 +178,14 @@
   tabindex="0"
   onkeydown={handleKeydown}
   onclick={handleSidebarClick}
+  ondragleave={handleSidebarDragLeave}
 >
   <div
     class="permanent-zone"
     class:drag-over={permanentDragOver}
     role="group"
     aria-label="Permanent tabs"
-    ondragover={(e: DragEvent) => { handleZoneDragOver(e); permanentDragOver = true; }}
-    ondragleave={() => permanentDragOver = false}
+    ondragover={(e: DragEvent) => { handleZoneDragOver(e); tabby.ui.dropTarget = null; tabby.ui.dropZone = 'permanent'; }}
     ondrop={handlePermanentDrop}
     oncontextmenu={handlePermanentContext}
   >
@@ -192,8 +201,7 @@
     class:drag-over={ephemeralDragOver}
     role="group"
     aria-label="Ephemeral tabs"
-    ondragover={(e: DragEvent) => { handleZoneDragOver(e); ephemeralDragOver = true; }}
-    ondragleave={() => ephemeralDragOver = false}
+    ondragover={(e: DragEvent) => { handleZoneDragOver(e); tabby.ui.dropTarget = null; tabby.ui.dropZone = 'ephemeral'; }}
     ondrop={handleEphemeralDrop}
   >
     {#each ephemeralNodes as node (node.id)}

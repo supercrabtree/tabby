@@ -4,7 +4,7 @@
   import { getNextPosition, getSubtree } from '../../shared/tree-utils';
   import {
     tabby, isCollapsed, toggleCollapsed,
-    renameFolder, showContextMenu, moveNode,
+    renameFolder, showContextMenu, moveNode, clearDragState,
   } from '../store.svelte.ts';
 
   let { node, depth }: { node: FolderNode; depth: number } = $props();
@@ -12,8 +12,10 @@
   let collapsed = $derived(isCollapsed(node.id));
   let isFocused = $derived(tabby.ui.focusedNodeId === node.id);
   let editing = $state(false);
-  let editName = $state(node.name);
-  let dropPosition = $state<'before' | 'inside' | 'after' | null>(null);
+  let editName = $state('');
+  let dropPosition = $derived(
+    tabby.ui.dropTarget?.nodeId === node.id ? tabby.ui.dropTarget.position : null,
+  );
   let inputEl = $state<HTMLInputElement | undefined>(undefined);
 
   $effect(() => {
@@ -41,7 +43,10 @@
 
   function handleInputKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter') commitRename();
-    if (e.key === 'Escape') editing = false;
+    if (e.key === 'Escape') {
+      editName = node.name;
+      editing = false;
+    }
   }
 
   function handleClick() {
@@ -63,6 +68,7 @@
   function handleDragStart(e: DragEvent) {
     e.dataTransfer!.setData('text/plain', node.id);
     e.dataTransfer!.effectAllowed = 'move';
+    tabby.ui.draggingNodeId = node.id;
   }
 
   function getDropZone(e: DragEvent, el: HTMLElement): 'before' | 'inside' | 'after' {
@@ -83,25 +89,18 @@
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer!.dropEffect = 'move';
-    dropPosition = getDropZone(e, e.currentTarget as HTMLElement);
-  }
-
-  function handleDragLeave(e: DragEvent) {
-    const row = e.currentTarget as HTMLElement;
-    const related = e.relatedTarget as Node | null;
-    if (related && row.contains(related)) return;
-    dropPosition = null;
+    tabby.ui.dropTarget = { nodeId: node.id, position: getDropZone(e, e.currentTarget as HTMLElement) };
+    tabby.ui.dropZone = node.zone;
   }
 
   function handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
     const draggedId = e.dataTransfer?.getData('text/plain');
-    dropPosition = null;
+    const zone = getDropZone(e, e.currentTarget as HTMLElement);
+    clearDragState();
 
     if (!draggedId || draggedId === node.id || isDescendant(draggedId)) return;
-
-    const zone = getDropZone(e, e.currentTarget as HTMLElement);
 
     if (zone === 'inside') {
       const pos = getNextPosition(tabby.data.nodes, node.id);
@@ -114,7 +113,14 @@
   }
 
   function handleDragEnd() {
-    dropPosition = null;
+    clearDragState();
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
   }
 </script>
 
@@ -124,21 +130,22 @@
   class:drop-before={dropPosition === 'before'}
   class:drop-inside={dropPosition === 'inside'}
   class:drop-after={dropPosition === 'after'}
-  style:padding-left="calc(var(--sidebar-padding) + {depth * 18 + 8}px)"
+  style:margin-left="calc(var(--sidebar-padding) + {depth * 18}px)"
   role="treeitem"
+  tabindex="0"
+  aria-selected={isFocused}
   aria-expanded={!collapsed}
   draggable={!editing}
   onclick={handleClick}
+  onkeydown={handleKeydown}
   ondblclick={handleDblClick}
   oncontextmenu={handleContextMenu}
   ondragstart={handleDragStart}
   ondragover={handleDragOver}
-  ondragleave={handleDragLeave}
   ondrop={handleDrop}
   ondragend={handleDragEnd}
 >
-  <span class="chevron" class:expanded={!collapsed}>&#x203A;</span>
-  <span class="folder-icon">{node.icon ?? '📁'}</span>
+  <span class="folder-icon">{node.icon ?? (collapsed ? '📁' : '📂')}</span>
 
   {#if editing}
     <input
@@ -159,12 +166,12 @@
     display: flex;
     align-items: center;
     height: var(--row-height);
-    padding-right: 8px;
-    gap: 6px;
+    padding: 0 8px;
+    gap: 8px;
     cursor: pointer;
     position: relative;
     transition: background-color 150ms ease;
-    margin: 0 var(--sidebar-padding);
+    margin-right: var(--sidebar-padding);
     border-radius: var(--card-radius);
   }
 
@@ -207,25 +214,14 @@
     z-index: 1;
   }
 
-  .chevron {
+  .folder-icon {
+    width: var(--icon-size);
+    height: var(--icon-size);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 14px;
     flex-shrink: 0;
-    font-size: 13px;
-    color: var(--text-muted);
-    transform: rotate(0deg);
-    transition: transform 150ms ease;
-  }
-
-  .chevron.expanded {
-    transform: rotate(90deg);
-  }
-
-  .folder-icon {
-    flex-shrink: 0;
-    font-size: 13px;
+    font-size: var(--icon-size);
     line-height: 1;
   }
 

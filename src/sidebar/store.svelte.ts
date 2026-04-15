@@ -14,6 +14,9 @@ export const tabby = $state({
   ui: {
     focusedNodeId: null as string | null,
     renamingNodeId: null as string | null,
+    draggingNodeId: null as string | null,
+    dropTarget: null as { nodeId: string; position: 'before' | 'inside' | 'after' } | null,
+    dropZone: null as 'permanent' | 'ephemeral' | 'divider' | null,
     contextMenu: {
       visible: false,
       x: 0,
@@ -109,4 +112,9 @@ export function reAnchor(nodeId: string) {
 }
 export function reopenClosed(entryId: string) {
   send({ type: 'REOPEN_CLOSED', entryId });
+}
+export function clearDragState() {
+  tabby.ui.draggingNodeId = null;
+  tabby.ui.dropTarget = null;
+  tabby.ui.dropZone = null;
 }

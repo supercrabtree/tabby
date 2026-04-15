@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Tab tree with folders and ephemeral auto-expiring tabs",
   "sidebar_action": {
-    "default_title": "Tabby",
+    "default_title": "",
     "default_panel": "index.html",
     "default_icon": "icons/tabby.svg"
   },

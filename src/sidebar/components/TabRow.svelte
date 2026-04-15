@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { TabNode } from '../../shared/types';
   import { getExpiryProgress, getNextPosition, getSubtree } from '../../shared/tree-utils';
-  import { tabby, activateTab, closeTab, showContextMenu, moveNode } from '../store.svelte.ts';
+  import { tabby, activateTab, closeTab, showContextMenu, moveNode, clearDragState } from '../store.svelte.ts';
   import browser from 'webextension-polyfill';
 
   let { node, depth }: { node: TabNode; depth: number } = $props();
@@ -23,7 +23,9 @@
       : null,
   );
 
-  let dropPosition = $state<'before' | 'inside' | 'after' | null>(null);
+  let dropPosition = $derived(
+    tabby.ui.dropTarget?.nodeId === node.id ? tabby.ui.dropTarget.position : null,
+  );
 
   function handleClick() {
     activateTab(node.firefoxTabId);
@@ -45,6 +47,7 @@
   function handleDragStart(e: DragEvent) {
     e.dataTransfer!.setData('text/plain', node.id);
     e.dataTransfer!.effectAllowed = 'move';
+    tabby.ui.draggingNodeId = node.id;
   }
 
   function getDropZone(e: DragEvent, el: HTMLElement): 'before' | 'inside' | 'after' {
@@ -65,25 +68,18 @@
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer!.dropEffect = 'move';
-    dropPosition = getDropZone(e, e.currentTarget as HTMLElement);
-  }
-
-  function handleDragLeave(e: DragEvent) {
-    const row = e.currentTarget as HTMLElement;
-    const related = e.relatedTarget as Node | null;
-    if (related && row.contains(related)) return;
-    dropPosition = null;
+    tabby.ui.dropTarget = { nodeId: node.id, position: getDropZone(e, e.currentTarget as HTMLElement) };
+    tabby.ui.dropZone = node.zone;
   }
 
   function handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
     const draggedId = e.dataTransfer?.getData('text/plain');
-    dropPosition = null;
+    const zone = getDropZone(e, e.currentTarget as HTMLElement);
+    clearDragState();
 
     if (!draggedId || draggedId === node.id || isDescendant(draggedId)) return;
-
-    const zone = getDropZone(e, e.currentTarget as HTMLElement);
 
     if (zone === 'inside') {
       const pos = getNextPosition(tabby.data.nodes, node.id);
@@ -96,7 +92,14 @@
   }
 
   function handleDragEnd() {
-    dropPosition = null;
+    clearDragState();
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
   }
 
   function handleClose(e: MouseEvent) {
@@ -121,13 +124,15 @@
   class:drop-after={dropPosition === 'after'}
   style:margin-left="calc(var(--sidebar-padding) + {depth * 18}px)"
   role="treeitem"
+  tabindex="0"
+  aria-selected={isFocused}
   draggable="true"
   onclick={handleClick}
+  onkeydown={handleKeydown}
   ondblclick={handleDblClick}
   oncontextmenu={handleContextMenu}
   ondragstart={handleDragStart}
   ondragover={handleDragOver}
-  ondragleave={handleDragLeave}
   ondrop={handleDrop}
   ondragend={handleDragEnd}
 >
