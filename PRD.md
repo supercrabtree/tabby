@@ -57,13 +57,13 @@ The fold is the single decision boundary. Dragging a tab from below the fold to 
 | ID | Requirement |
 |----|-------------|
 | F2.1 | Every open tab in the current window is represented as a node in the tree. |
-| F2.2 | Tabs display: favicon, title (truncated), and status indicators (loading, audible, anchor icon if above the fold, subtle countdown bar if below the fold). |
+| F2.2 | Tabs display: favicon, title (truncated), and status indicators (loading, anchor icon if above the fold, subtle countdown bar if below the fold). |
 | F2.3 | Clicking a tab node activates (switches to) that tab. |
 | F2.4 | Each tab row has a close button (x icon) that appears on hover. Clicking it closes the tab. No middle-click close. |
 | F2.5 | Tabs can be nested under other tabs via drag-and-drop to form a visual hierarchy. |
 | F2.6 | When a link is opened from a tab, the new tab is automatically inserted as a child of the opener. |
 | F2.7 | Collapsing a parent tab hides all descendants; expanding reveals them. |
-| F2.8 | Right-click context menu on a tab provides: Close, Close Subtree, Keep (promote above fold, shown for ephemeral tabs), Re-anchor here (shown for permanent tabs), Move to Folder, Flatten, Duplicate, Reload, Mute/Unmute. |
+| F2.8 | Right-click context menu on a tab provides: Close, Close Subtree, Keep (promote above fold, shown for ephemeral tabs), Re-anchor here (shown for permanent tabs), Move to Folder, Flatten, Duplicate, Reload. |
 | F2.9 | Multi-select (Ctrl/Cmd+click, Shift+click) allows bulk operations (close, move to folder, keep, flatten). |
 | F2.10 | Tab order in the tree is independent of Firefox's internal tab order; reordering in the tree does not reorder Firefox's tab strip. |
 
@@ -90,7 +90,7 @@ Being above the fold and being anchored are the same thing. There is no way to a
 | ID | Requirement |
 |----|-------------|
 | F4.1 | A visible horizontal divider (the fold) separates the sidebar into an upper permanent zone and a lower ephemeral zone. |
-| F4.2 | All newly opened tabs are inserted below the fold, regardless of whether the opener is permanent or ephemeral. Tabs opened from another ephemeral tab nest as a child of the opener. Tabs opened from a permanent tab, or independent new tabs (Ctrl+T, links from external apps), are inserted at the top of the ephemeral zone, immediately below the fold line, so the freshest tabs are always visible first. |
+| F4.2 | All newly opened tabs are inserted below the fold, regardless of whether the opener is permanent or ephemeral. Tabs opened from another ephemeral tab nest as a child of the opener. Tabs opened from a permanent tab, or independent new tabs (Ctrl+T, links from external apps), are inserted at the bottom of the ephemeral zone. |
 | F4.3 | Dragging a tab from below the fold to above it promotes the tab and its entire subtree to permanent. Each promoted tab records its current URL as its **anchor point**, loses its expiry timer, and persists indefinitely. |
 | F4.4 | The "Keep" action in the context menu (or a keyboard shortcut) promotes a tab above the fold, equivalent to dragging it up. |
 | F4.5 | Moving a tab into a folder automatically promotes it (folders exist only above the fold). |
@@ -122,7 +122,7 @@ Being above the fold and being anchored are the same thing. There is no way to a
 | F4.18 | Tabs below the fold support the full tree: drag-and-drop nesting, collapse/expand, and auto-grouping by opener. |
 | F4.19 | Users can select any set of tabs (above, below, or spanning the fold) and click "Flatten" to remove all parent-child nesting among the selection, making them siblings at the same level. |
 | F4.20 | Tabs below the fold display a subtle countdown bar (no text) that visually depletes as the tab approaches expiry. |
-| F4.21 | The expiry period (default 24 hours) is configurable in Tabby's settings. |
+| F4.21 | The expiry period defaults to 24 hours. |
 | F4.22 | Auto-close is silent -- no form data detection (would require host permissions). The Recently Closed section and browser's native Ctrl+Shift+T serve as the safety net. |
 
 ### F6: Session Persistence
