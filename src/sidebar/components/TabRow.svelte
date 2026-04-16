@@ -60,8 +60,8 @@
   }
 
   function isDescendant(draggedId: string): boolean {
-    const subtree = getSubtree(tabby.data.nodes, node.id);
-    return subtree.some(n => n.id === draggedId);
+    const subtree = getSubtree(tabby.data.nodes, draggedId);
+    return subtree.some(n => n.id === node.id);
   }
 
   function handleDragOver(e: DragEvent) {

@@ -624,6 +624,43 @@ test.describe('Drag and drop', () => {
     }));
   });
 
+  test('dragging a grandchild into its grandparent reparents it', async ({ page }) => {
+    const state = defaultState();
+    state.nodes.push({
+      id: 'f2', type: 'folder', parentId: 'f1', zone: 'permanent', position: 1,
+      collapsed: false, name: 'Project', color: null, icon: null,
+    });
+    const jira = state.nodes.find(n => n.id === 'p3')!;
+    (jira as any).parentId = 'f2';
+    await pushState(page, state);
+    await clearAll(page);
+
+    const source = page.locator('.tab-row', { hasText: 'Jira' });
+    const target = page.locator('.folder-row', { hasText: 'Work' });
+
+    await source.dragTo(target);
+
+    const msgs = await getMessages(page);
+    expect(msgs).toContainEqual(expect.objectContaining({
+      type: 'MOVE_NODE',
+      nodeId: 'p3',
+      newParentId: 'f1',
+    }));
+  });
+
+  test('dragging a folder onto its own child is prevented', async ({ page }) => {
+    const source = page.locator('.folder-row', { hasText: 'Work' });
+    const target = page.locator('.tab-row', { hasText: 'Jira' });
+
+    await source.dragTo(target);
+
+    const msgs = await getMessages(page);
+    expect(msgs).not.toContainEqual(expect.objectContaining({
+      type: 'MOVE_NODE',
+      nodeId: 'f1',
+    }));
+  });
+
   test('dragging a tab to the fold divider promotes it', async ({ page }) => {
     const source = page.locator('.tab-row', { hasText: 'Stack Overflow' });
     const target = page.locator('.fold-divider');
