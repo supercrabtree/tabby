@@ -661,17 +661,32 @@ test.describe('Drag and drop', () => {
     }));
   });
 
-  test('dragging a tab to the fold divider promotes it', async ({ page }) => {
+  test('dragging a tab to the top half of the fold divider promotes it', async ({ page }) => {
     const source = page.locator('.tab-row', { hasText: 'Stack Overflow' });
     const target = page.locator('.fold-divider');
 
-    await source.dragTo(target);
+    await source.dragTo(target, { targetPosition: { x: 50, y: 2 } });
 
     const msgs = await getMessages(page);
     expect(msgs).toContainEqual(expect.objectContaining({
       type: 'MOVE_NODE',
       nodeId: 'e1',
       newZone: 'permanent',
+    }));
+  });
+
+  test('dragging a tab to the bottom half of the fold divider makes it ephemeral', async ({ page }) => {
+    const source = page.locator('.tab-row', { hasText: 'GitHub' });
+    const target = page.locator('.fold-divider');
+    const box = await target.boundingBox();
+
+    await source.dragTo(target, { targetPosition: { x: 50, y: box!.height - 2 } });
+
+    const msgs = await getMessages(page);
+    expect(msgs).toContainEqual(expect.objectContaining({
+      type: 'MOVE_NODE',
+      nodeId: 'p1',
+      newZone: 'ephemeral',
     }));
   });
 });

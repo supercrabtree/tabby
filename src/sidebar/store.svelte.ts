@@ -16,7 +16,7 @@ export const tabby = $state({
     renamingNodeId: null as string | null,
     draggingNodeId: null as string | null,
     dropTarget: null as { nodeId: string; position: 'before' | 'inside' | 'after' } | null,
-    dropZone: null as 'permanent' | 'ephemeral' | 'divider' | null,
+    dropZone: null as 'permanent' | 'ephemeral' | 'divider-above' | 'divider-below' | null,
     contextMenu: {
       visible: false,
       x: 0,

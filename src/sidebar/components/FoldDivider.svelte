@@ -2,23 +2,35 @@
   import { getNextPosition } from '../../shared/tree-utils';
   import { tabby, moveNode, createFolder, clearDragState } from '../store.svelte.ts';
 
-  let dragOver = $derived(tabby.ui.dropZone === 'divider');
+  let dropHalf = $derived(
+    tabby.ui.dropZone === 'divider-above' ? 'above'
+    : tabby.ui.dropZone === 'divider-below' ? 'below'
+    : null,
+  );
 
   function handleDragOver(e: DragEvent) {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer!.dropEffect = 'move';
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const half = (e.clientY - rect.top) < rect.height / 2 ? 'above' : 'below';
     tabby.ui.dropTarget = null;
-    tabby.ui.dropZone = 'divider';
+    tabby.ui.dropZone = half === 'above' ? 'divider-above' : 'divider-below';
   }
 
   function handleDrop(e: DragEvent) {
     e.preventDefault();
     e.stopPropagation();
     const nodeId = e.dataTransfer?.getData('text/plain');
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const half = (e.clientY - rect.top) < rect.height / 2 ? 'above' : 'below';
     clearDragState();
-    if (nodeId) {
+    if (!nodeId) return;
+    if (half === 'above') {
       const pos = getNextPosition(tabby.data.nodes, null, 'permanent');
       moveNode(nodeId, null, pos, 'permanent');
+    } else {
+      moveNode(nodeId, null, 0, 'ephemeral');
     }
   }
 
@@ -30,7 +42,8 @@
 
 <div
   class="fold-divider"
-  class:drag-over={dragOver}
+  class:drop-above={dropHalf === 'above'}
+  class:drop-below={dropHalf === 'below'}
   role="separator"
   ondragover={handleDragOver}
   ondrop={handleDrop}
@@ -51,20 +64,35 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+  }
+
+  .fold-divider.drop-above::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(var(--sidebar-padding) + 8px);
+    right: calc(var(--sidebar-padding) + 8px);
+    height: 2px;
+    background: var(--anchor-color);
+    border-radius: 1px;
+  }
+
+  .fold-divider.drop-below::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: calc(var(--sidebar-padding) + 8px);
+    right: calc(var(--sidebar-padding) + 8px);
+    height: 2px;
+    background: var(--anchor-color);
+    border-radius: 1px;
   }
 
   .fold-line {
     flex: 1;
     border-top: 1.5px dashed var(--fold-line);
     opacity: 0.8;
-    transition: border-color 150ms ease, opacity 150ms ease;
-  }
-
-  .fold-divider.drag-over .fold-line {
-    border-top-width: 2px;
-    border-top-style: solid;
-    border-top-color: var(--anchor-color);
-    opacity: 1;
   }
 
   .add-folder-btn {
