@@ -525,6 +525,18 @@ test.describe('Folder inline rename', () => {
     await expect(input).toBeVisible();
     await expect(input).toHaveValue('Work');
   });
+
+  test('arrow keys during rename do not trigger sidebar navigation', async ({ page }) => {
+    await openContextMenu(page, page.locator('.folder-row', { hasText: 'Work' }));
+    await page.getByText('Rename').click();
+
+    const input = page.locator('.folder-row .rename-input');
+    await input.press('ArrowDown');
+    await input.press('ArrowUp');
+
+    await expect(input).toBeVisible();
+    await expect(page.locator('.tab-row.focused')).not.toBeVisible();
+  });
 });
 
 // ── Tab inline rename ─────────────────────────────────────────────────────────

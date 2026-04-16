@@ -160,7 +160,7 @@
   class:drop-before={dropPosition === 'before'}
   class:drop-inside={dropPosition === 'inside'}
   class:drop-after={dropPosition === 'after'}
-  style:margin-left="calc(var(--sidebar-padding) + {depth * 18}px)"
+  style:margin-left="calc(var(--sidebar-padding) + {depth * 24}px)"
   role="treeitem"
   tabindex="0"
   aria-selected={isFocused}
@@ -227,14 +227,14 @@
   }
 
   .tab-row.permanent {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
+    background: none;
+    border: 1px solid transparent;
     margin-bottom: var(--gap);
     margin-left: var(--sidebar-padding);
   }
 
   .tab-row.permanent:hover {
-    background: var(--card-bg-hover);
+    background: var(--bg-hover);
   }
 
   .tab-row.ephemeral {

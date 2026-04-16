@@ -42,6 +42,7 @@
   }
 
   function handleInputKeydown(e: KeyboardEvent) {
+    e.stopPropagation();
     if (e.key === 'Enter') commitRename();
     if (e.key === 'Escape') {
       editName = node.name;
@@ -52,11 +53,6 @@
   function handleClick() {
     toggleCollapsed(node.id);
     tabby.ui.focusedNodeId = node.id;
-  }
-
-  function handleDblClick(e: MouseEvent) {
-    e.preventDefault();
-    startEditing();
   }
 
   function handleContextMenu(e: MouseEvent) {
@@ -130,7 +126,7 @@
   class:drop-before={dropPosition === 'before'}
   class:drop-inside={dropPosition === 'inside'}
   class:drop-after={dropPosition === 'after'}
-  style:margin-left="calc(var(--sidebar-padding) + {depth * 18}px)"
+  style:margin-left="calc(var(--sidebar-padding) + {depth * 24}px)"
   role="treeitem"
   tabindex="0"
   aria-selected={isFocused}
@@ -138,7 +134,6 @@
   draggable={!editing}
   onclick={handleClick}
   onkeydown={handleKeydown}
-  ondblclick={handleDblClick}
   oncontextmenu={handleContextMenu}
   ondragstart={handleDragStart}
   ondragover={handleDragOver}
