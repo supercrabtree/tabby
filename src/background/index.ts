@@ -38,6 +38,7 @@ function handleTabCreated(tab: browser.Tabs.Tab): void {
     firefoxTabId: tab.id!,
     url: tab.url || '',
     title: tab.title || '',
+    customTitle: null,
     favIconUrl: tab.favIconUrl || '',
     anchorUrl: null,
     status: tab.status === 'loading' ? 'loading' : 'complete',
@@ -389,6 +390,15 @@ function handleFlattenNodes(nodeIds: string[]): void {
   broadcastState();
 }
 
+function handleRenameTab(nodeId: string, customTitle: string | null): void {
+  const node = state.nodes.find(
+    (n): n is TabNode => n.id === nodeId && n.type === 'tab',
+  );
+  if (!node) return;
+  node.customTitle = customTitle;
+  broadcastState();
+}
+
 function handleReAnchor(nodeId: string): void {
   const node = state.nodes.find(
     (n): n is TabNode => n.id === nodeId && n.type === 'tab',
@@ -440,6 +450,9 @@ function handleMessage(msg: Message): void {
       break;
     case 'RENAME_FOLDER':
       handleRenameFolder(msg);
+      break;
+    case 'RENAME_TAB':
+      handleRenameTab(msg.nodeId, msg.customTitle);
       break;
     case 'DELETE_FOLDER':
       handleDeleteFolder(msg.nodeId);
@@ -597,6 +610,7 @@ function reconcile(realTabs: browser.Tabs.Tab[]): void {
       firefoxTabId: tab.id!,
       url: tab.url || '',
       title: tab.title || '',
+      customTitle: null,
       favIconUrl: tab.favIconUrl || '',
       anchorUrl: null,
       status: tab.status === 'loading' ? 'loading' : 'complete',

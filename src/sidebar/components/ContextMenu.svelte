@@ -4,7 +4,7 @@
   import {
     tabby, hideContextMenu,
     reAnchor, closeTab, promoteNode, demoteNode,
-    createFolder, deleteFolder, flattenNodes,
+    createFolder, deleteFolder, flattenNodes, renameTab,
   } from '../store.svelte.ts';
   import browser from 'webextension-polyfill';
 
@@ -75,6 +75,12 @@
     }
   }
 
+  function handleRenameTab() {
+    if (target?.type === 'tab') {
+      tabby.ui.renamingNodeId = target.id;
+    }
+  }
+
   function handleNewSubfolder() {
     if (target) {
       const pos = getNextPosition(tabby.data.nodes, target.id);
@@ -99,6 +105,7 @@
     style:top="{tabby.ui.contextMenu.y}px"
   >
     {#if isTab && isPermanent}
+      <button class="menu-item" onclick={handleRenameTab}>Rename</button>
       <button class="menu-item" onclick={handleReAnchor}>Re-anchor here</button>
       <button class="menu-item" onclick={handleDemote}>Move below fold</button>
       {#if hasChildren}

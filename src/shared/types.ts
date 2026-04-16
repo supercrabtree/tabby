@@ -8,6 +8,7 @@ export interface TabNode {
   firefoxTabId: number;
   url: string;
   title: string;
+  customTitle: string | null;
   favIconUrl: string;
   anchorUrl: string | null;
   status: 'loading' | 'complete';

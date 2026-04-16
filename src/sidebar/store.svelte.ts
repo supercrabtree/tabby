@@ -101,6 +101,9 @@ export function createFolder(name: string, parentId: string | null, position: nu
 export function renameFolder(nodeId: string, name: string) {
   send({ type: 'RENAME_FOLDER', nodeId, name });
 }
+export function renameTab(nodeId: string, customTitle: string | null) {
+  send({ type: 'RENAME_TAB', nodeId, customTitle });
+}
 export function deleteFolder(nodeId: string) {
   send({ type: 'DELETE_FOLDER', nodeId });
 }

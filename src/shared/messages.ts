@@ -10,6 +10,7 @@ export type Message =
   | { type: 'MOVE_NODE'; nodeId: string; newParentId: string | null; newPosition: number; newZone: 'permanent' | 'ephemeral' }
   | { type: 'CREATE_FOLDER'; name: string; parentId: string | null; position: number }
   | { type: 'RENAME_FOLDER'; nodeId: string; name: string }
+  | { type: 'RENAME_TAB'; nodeId: string; customTitle: string | null }
   | { type: 'DELETE_FOLDER'; nodeId: string }
   | { type: 'FLATTEN_NODES'; nodeIds: string[] }
   | { type: 'RE_ANCHOR'; nodeId: string }

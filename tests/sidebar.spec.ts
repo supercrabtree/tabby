@@ -8,12 +8,12 @@ function defaultState() {
       {
         id: 'p1', type: 'tab', parentId: null, zone: 'permanent', position: 0,
         collapsed: false, firefoxTabId: 1, url: 'https://github.com', title: 'GitHub',
-        favIconUrl: '', anchorUrl: 'https://github.com', status: 'complete', lastActiveAt: Date.now(),
+        customTitle: null, favIconUrl: '', anchorUrl: 'https://github.com', status: 'complete', lastActiveAt: Date.now(),
       },
       {
         id: 'p2', type: 'tab', parentId: null, zone: 'permanent', position: 1,
         collapsed: false, firefoxTabId: 2, url: 'https://docs.example.com/page',
-        title: 'Docs', favIconUrl: '', anchorUrl: 'https://docs.example.com',
+        title: 'Docs', customTitle: null, favIconUrl: '', anchorUrl: 'https://docs.example.com',
         status: 'complete', lastActiveAt: Date.now(),
       },
       {
@@ -23,18 +23,18 @@ function defaultState() {
       {
         id: 'p3', type: 'tab', parentId: 'f1', zone: 'permanent', position: 0,
         collapsed: false, firefoxTabId: 3, url: 'https://jira.example.com', title: 'Jira',
-        favIconUrl: '', anchorUrl: 'https://jira.example.com', status: 'complete', lastActiveAt: Date.now(),
+        customTitle: null, favIconUrl: '', anchorUrl: 'https://jira.example.com', status: 'complete', lastActiveAt: Date.now(),
       },
       {
         id: 'e1', type: 'tab', parentId: null, zone: 'ephemeral', position: 0,
         collapsed: false, firefoxTabId: 4, url: 'https://stackoverflow.com',
-        title: 'Stack Overflow', favIconUrl: '', anchorUrl: null,
+        title: 'Stack Overflow', customTitle: null, favIconUrl: '', anchorUrl: null,
         status: 'complete', lastActiveAt: Date.now(),
       },
       {
         id: 'e2', type: 'tab', parentId: null, zone: 'ephemeral', position: 1,
         collapsed: false, firefoxTabId: 5, url: 'https://reddit.com',
-        title: 'Reddit', favIconUrl: '', anchorUrl: null,
+        title: 'Reddit', customTitle: null, favIconUrl: '', anchorUrl: null,
         status: 'complete', lastActiveAt: Date.now(),
       },
     ],
@@ -305,6 +305,7 @@ test.describe('Context menu', () => {
 
     const menu = page.locator('.context-menu');
     await expect(menu).toBeVisible();
+    await expect(menu.getByText('Rename')).toBeVisible();
     await expect(menu.getByText('Re-anchor here')).toBeVisible();
     await expect(menu.getByText('Move below fold')).toBeVisible();
     await expect(menu.getByText('Duplicate')).toBeVisible();
@@ -465,6 +466,15 @@ test.describe('Context menu actions', () => {
     const msgs = await getMessages(page);
     expect(msgs).toContainEqual({ type: 'DELETE_FOLDER', nodeId: 'f1' });
   });
+
+  test('Rename tab triggers rename mode on permanent tab', async ({ page }) => {
+    await openContextMenu(page, page.locator('.tab-row', { hasText: 'GitHub' }));
+    await page.getByText('Rename').click();
+
+    const input = page.locator('.tab-row .rename-input');
+    await expect(input).toBeVisible();
+    await expect(input).toHaveValue('GitHub');
+  });
 });
 
 // ── Folder inline rename ──────────────────────────────────────────────────────
@@ -514,6 +524,67 @@ test.describe('Folder inline rename', () => {
     const input = page.locator('.folder-row .rename-input');
     await expect(input).toBeVisible();
     await expect(input).toHaveValue('Work');
+  });
+});
+
+// ── Tab inline rename ─────────────────────────────────────────────────────────
+
+test.describe('Tab inline rename', () => {
+  test('typing and pressing Enter sends RENAME_TAB', async ({ page }) => {
+    await openContextMenu(page, page.locator('.tab-row', { hasText: 'GitHub' }));
+    await page.getByText('Rename').click();
+
+    const input = page.locator('.tab-row .rename-input');
+    await input.fill('My GitHub');
+    await input.press('Enter');
+
+    const msgs = await getMessages(page);
+    expect(msgs).toContainEqual({ type: 'RENAME_TAB', nodeId: 'p1', customTitle: 'My GitHub' });
+    await expect(input).not.toBeVisible();
+  });
+
+  test('pressing Escape cancels rename', async ({ page }) => {
+    await openContextMenu(page, page.locator('.tab-row', { hasText: 'GitHub' }));
+    await page.getByText('Rename').click();
+
+    const input = page.locator('.tab-row .rename-input');
+    await input.fill('Something else');
+    await input.press('Escape');
+
+    await expect(input).not.toBeVisible();
+    const msgs = await getMessages(page);
+    expect(msgs).not.toContainEqual(expect.objectContaining({ type: 'RENAME_TAB' }));
+  });
+
+  test('unchanged name does not send message', async ({ page }) => {
+    await openContextMenu(page, page.locator('.tab-row', { hasText: 'GitHub' }));
+    await page.getByText('Rename').click();
+
+    const input = page.locator('.tab-row .rename-input');
+    await input.press('Enter');
+
+    const msgs = await getMessages(page);
+    expect(msgs).not.toContainEqual(expect.objectContaining({ type: 'RENAME_TAB' }));
+  });
+
+  test('displays customTitle when set', async ({ page }) => {
+    const state = defaultState();
+    (state.nodes[0] as any).customTitle = 'My GitHub';
+    await pushState(page, state);
+
+    await expect(page.locator('.tab-row', { hasText: 'My GitHub' })).toBeVisible();
+  });
+
+  test('arrow keys during rename do not trigger sidebar navigation', async ({ page }) => {
+    await openContextMenu(page, page.locator('.tab-row', { hasText: 'GitHub' }));
+    await page.getByText('Rename').click();
+
+    const input = page.locator('.tab-row .rename-input');
+    await input.press('ArrowDown');
+    await input.press('ArrowUp');
+
+    await expect(input).toBeVisible();
+    await expect(page.locator('.tab-row.focused')).not.toBeVisible();
   });
 });
 

@@ -1,7 +1,8 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import type { TabNode } from '../../shared/types';
   import { getExpiryProgress, getNextPosition, getSubtree } from '../../shared/tree-utils';
-  import { tabby, activateTab, closeTab, showContextMenu, moveNode, clearDragState } from '../store.svelte.ts';
+  import { tabby, activateTab, closeTab, showContextMenu, moveNode, clearDragState, renameTab } from '../store.svelte.ts';
   import browser from 'webextension-polyfill';
 
   let { node, depth }: { node: TabNode; depth: number } = $props();
@@ -26,6 +27,43 @@
   let dropPosition = $derived(
     tabby.ui.dropTarget?.nodeId === node.id ? tabby.ui.dropTarget.position : null,
   );
+  let displayTitle = $derived(node.customTitle || node.title || node.url);
+
+  let editing = $state(false);
+  let editName = $state('');
+  let inputEl = $state<HTMLInputElement | undefined>(undefined);
+
+  $effect(() => {
+    if (tabby.ui.renamingNodeId === node.id) {
+      tabby.ui.renamingNodeId = null;
+      startEditing();
+    }
+  });
+
+  async function startEditing() {
+    editing = true;
+    editName = displayTitle;
+    await tick();
+    inputEl?.focus();
+    inputEl?.select();
+  }
+
+  function commitRename() {
+    const trimmed = editName.trim();
+    if (trimmed && trimmed !== displayTitle) {
+      renameTab(node.id, trimmed);
+    }
+    editing = false;
+  }
+
+  function handleInputKeydown(e: KeyboardEvent) {
+    e.stopPropagation();
+    if (e.key === 'Enter') commitRename();
+    if (e.key === 'Escape') {
+      editName = displayTitle;
+      editing = false;
+    }
+  }
 
   function handleClick() {
     activateTab(node.firefoxTabId);
@@ -145,7 +183,18 @@
     onerror={handleFaviconError}
   />
 
-  <span class="title">{node.title || node.url}</span>
+  {#if editing}
+    <input
+      bind:this={inputEl}
+      bind:value={editName}
+      class="rename-input"
+      onblur={commitRename}
+      onkeydown={handleInputKeydown}
+      onclick={(e: MouseEvent) => e.stopPropagation()}
+    />
+  {:else}
+    <span class="title">{displayTitle}</span>
+  {/if}
 
   <div class="trailing-action">
     {#if isPermanent && node.anchorUrl}
@@ -335,5 +384,18 @@
   .close-btn:hover {
     color: var(--close-btn-hover);
     background-color: var(--bg-active);
+  }
+
+  .rename-input {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-size);
+    font-family: inherit;
+    padding: 2px 6px;
+    border: 1px solid var(--anchor-color);
+    border-radius: var(--radius);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    outline: none;
   }
 </style>
