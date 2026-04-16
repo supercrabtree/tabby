@@ -119,6 +119,15 @@ test.describe('Rendering', () => {
     await expect(page.getByRole('separator').first()).toBeVisible();
     await expect(page.getByTitle('New folder')).toBeVisible();
   });
+
+  test('permanent tab with null anchorUrl shows no anchor dot', async ({ page }) => {
+    const state = defaultState();
+    (state.nodes[0] as any).anchorUrl = null;
+    await pushState(page, state);
+
+    const tab = page.locator('.tab-row', { hasText: 'GitHub' });
+    await expect(tab.locator('.anchor-dot')).not.toBeVisible();
+  });
 });
 
 // ── Click to activate ─────────────────────────────────────────────────────────
@@ -533,6 +542,19 @@ test.describe('Double-click anchor restore', () => {
   test('double-clicking an ephemeral tab does not call update', async ({ page }) => {
     const ephemeralTab = page.locator('.tab-row', { hasText: 'Stack Overflow' });
     await ephemeralTab.dblclick();
+
+    const calls = await getTabsCalls(page);
+    expect(calls).not.toContainEqual(expect.objectContaining({ method: 'update' }));
+  });
+
+  test('double-clicking a permanent tab with null anchorUrl does not navigate', async ({ page }) => {
+    const state = defaultState();
+    (state.nodes[0] as any).anchorUrl = null;
+    await pushState(page, state);
+    await clearAll(page);
+
+    const tab = page.locator('.tab-row', { hasText: 'GitHub' });
+    await tab.dblclick();
 
     const calls = await getTabsCalls(page);
     expect(calls).not.toContainEqual(expect.objectContaining({ method: 'update' }));

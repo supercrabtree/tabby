@@ -49,17 +49,19 @@ function handleTabCreated(tab: browser.Tabs.Tab): void {
     const opener = state.nodes.find(
       (n): n is TabNode => n.type === 'tab' && n.firefoxTabId === tab.openerTabId,
     );
-    if (opener && opener.zone === 'ephemeral') {
+    if (opener) {
       node.parentId = opener.id;
+      node.zone = opener.zone;
       node.position = getNextPosition(state.nodes, opener.id);
+      if (opener.zone === 'permanent') {
+        node.lastActiveAt = null;
+      }
       nested = true;
     }
   }
 
   if (!nested) {
-    for (const n of state.nodes) {
-      if (n.parentId === null && n.zone === 'ephemeral') n.position++;
-    }
+    node.position = getNextPosition(state.nodes, null, 'ephemeral');
   }
 
   state.nodes.push(node);
@@ -110,6 +112,9 @@ function handleTabUpdated(
   if (changeInfo.favIconUrl !== undefined) node.favIconUrl = changeInfo.favIconUrl;
   if (changeInfo.status !== undefined) {
     node.status = changeInfo.status === 'loading' ? 'loading' : 'complete';
+    if (node.status === 'complete' && node.zone === 'permanent' && node.anchorUrl === null) {
+      node.anchorUrl = node.url;
+    }
   }
 
   broadcastState();
