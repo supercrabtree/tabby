@@ -180,33 +180,35 @@
   onclick={handleSidebarClick}
   ondragleave={handleSidebarDragLeave}
 >
-  <div
-    class="permanent-zone"
-    class:drag-over={permanentDragOver}
-    role="group"
-    aria-label="Permanent tabs"
-    ondragover={(e: DragEvent) => { handleZoneDragOver(e); tabby.ui.dropTarget = null; tabby.ui.dropZone = 'permanent'; }}
-    ondrop={handlePermanentDrop}
-    oncontextmenu={handlePermanentContext}
-  >
-    {#each permanentNodes as node (node.id)}
-      <TreeNode {node} depth={0} />
-    {/each}
-  </div>
+  <div class="tab-tree">
+    <div
+      class="permanent-zone"
+      class:drag-over={permanentDragOver}
+      role="group"
+      aria-label="Permanent tabs"
+      ondragover={(e: DragEvent) => { handleZoneDragOver(e); tabby.ui.dropTarget = null; tabby.ui.dropZone = 'permanent'; }}
+      ondrop={handlePermanentDrop}
+      oncontextmenu={handlePermanentContext}
+    >
+      {#each permanentNodes as node (node.id)}
+        <TreeNode {node} depth={0} />
+      {/each}
+    </div>
 
-  <FoldDivider />
+    <FoldDivider />
 
-  <div
-    class="ephemeral-zone"
-    class:drag-over={ephemeralDragOver}
-    role="group"
-    aria-label="Ephemeral tabs"
-    ondragover={(e: DragEvent) => { handleZoneDragOver(e); tabby.ui.dropTarget = null; tabby.ui.dropZone = 'ephemeral'; }}
-    ondrop={handleEphemeralDrop}
-  >
-    {#each ephemeralNodes as node (node.id)}
-      <TreeNode {node} depth={0} />
-    {/each}
+    <div
+      class="ephemeral-zone"
+      class:drag-over={ephemeralDragOver}
+      role="group"
+      aria-label="Ephemeral tabs"
+      ondragover={(e: DragEvent) => { handleZoneDragOver(e); tabby.ui.dropTarget = null; tabby.ui.dropZone = 'ephemeral'; }}
+      ondrop={handleEphemeralDrop}
+    >
+      {#each ephemeralNodes as node (node.id)}
+        <TreeNode {node} depth={0} />
+      {/each}
+    </div>
   </div>
 
   <RecentlyClosed />
@@ -217,22 +219,26 @@
 <style>
   .sidebar {
     flex: 1;
-    overflow-y: auto;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     outline: none;
+  }
+
+  .tab-tree {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     padding-top: var(--sidebar-padding);
   }
 
   .permanent-zone {
     min-height: 36px;
-    flex-shrink: 0;
     transition: background-color 150ms ease;
     padding-bottom: 2px;
   }
 
   .ephemeral-zone {
-    flex: 1;
     min-height: 36px;
     transition: background-color 150ms ease;
   }

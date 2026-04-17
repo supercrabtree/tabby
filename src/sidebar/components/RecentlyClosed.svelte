@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { slide } from 'svelte/transition';
   import { tabby, reopenClosed } from '../store.svelte.ts';
 
   let collapsed = $state(true);
@@ -64,9 +65,6 @@
 
 {#if hasEntries}
   <div class="recently-closed">
-    {#if !collapsed}
-      <div class="resize-handle" onmousedown={handleResizeStart} role="separator"></div>
-    {/if}
     <button class="header" onclick={toggle}>
       <span class="chevron" class:expanded={!collapsed}>&#x203A;</span>
       <span class="header-text">Recently Closed</span>
@@ -74,21 +72,24 @@
     </button>
 
     {#if !collapsed}
-      <div class="entries" style:height="{panelHeight}px">
-        {#each entries as entry (entry.id)}
-          <button class="entry" onclick={() => handleReopen(entry.id)} title={entry.url}>
-            <img
-              class="favicon"
-              src={entry.favIconUrl || FALLBACK_ICON}
-              alt=""
-              width="16"
-              height="16"
-              onerror={handleFaviconError}
-            />
-            <span class="entry-title">{entry.title || entry.url}</span>
-            <span class="entry-time">{formatTime(entry.closedAt)}</span>
-          </button>
-        {/each}
+      <div class="panel" transition:slide={{ duration: 200 }}>
+        <div class="resize-handle" onmousedown={handleResizeStart} role="separator"></div>
+        <div class="entries" style:height="{panelHeight}px">
+          {#each entries as entry (entry.id)}
+            <button class="entry" onclick={() => handleReopen(entry.id)} title={entry.url}>
+              <img
+                class="favicon"
+                src={entry.favIconUrl || FALLBACK_ICON}
+                alt=""
+                width="16"
+                height="16"
+                onerror={handleFaviconError}
+              />
+              <span class="entry-title">{entry.title || entry.url}</span>
+              <span class="entry-time">{formatTime(entry.closedAt)}</span>
+            </button>
+          {/each}
+        </div>
       </div>
     {/if}
   </div>
@@ -99,7 +100,11 @@
     flex-shrink: 0;
     background: var(--recently-closed-bg);
     border-top: 1px solid var(--border);
+  }
+
+  .panel {
     position: relative;
+    overflow: hidden;
   }
 
   .resize-handle {

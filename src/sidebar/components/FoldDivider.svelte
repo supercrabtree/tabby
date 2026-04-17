@@ -60,7 +60,7 @@
 <style>
   .fold-divider {
     flex-shrink: 0;
-    padding: 10px var(--sidebar-padding);
+    padding: 10px calc(var(--sidebar-padding) + 8px) 10px var(--sidebar-padding);
     display: flex;
     align-items: center;
     gap: 8px;
