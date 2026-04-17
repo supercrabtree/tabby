@@ -9,7 +9,8 @@
     "sign": "npm run build && web-ext sign --channel unlisted",
     "lint:ext": "web-ext lint",
     "clean": "rm -rf dist web-ext-artifacts",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "webextension-polyfill": "^0.12.0"
@@ -23,6 +24,7 @@
     "svelte": "^5.55.4",
     "typescript": "^6.0.2",
     "vite": "^8.0.8",
+    "vitest": "^4.1.4",
     "web-ext": "^10.1.0"
   }
 }

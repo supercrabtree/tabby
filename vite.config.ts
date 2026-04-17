@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => ({
     emptyOutDir: true,
     target: 'firefox115',
   },
+  test: {
+    include: ['tests/**/*.test.ts'],
+  },
   resolve: mode === 'test' ? {
     alias: {
       'webextension-polyfill': fileURLToPath(new URL('./tests/mock-browser.ts', import.meta.url)),
