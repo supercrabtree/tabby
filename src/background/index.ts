@@ -439,9 +439,17 @@ function handleMessage(msg: Message): void {
     case 'GET_STATE':
       broadcastState();
       break;
-    case 'ACTIVATE_TAB':
+    case 'ACTIVATE_TAB': {
+      const activated = state.nodes.find(
+        (n): n is TabNode => n.type === 'tab' && n.firefoxTabId === msg.firefoxTabId,
+      );
+      if (activated && activated.zone === 'ephemeral') {
+        activated.lastActiveAt = Date.now();
+        broadcastState();
+      }
       browser.tabs.update(msg.firefoxTabId, { active: true }).catch(() => {});
       break;
+    }
     case 'CLOSE_TAB':
       handleCloseTab(msg.nodeId);
       break;
