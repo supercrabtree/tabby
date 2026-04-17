@@ -10,6 +10,7 @@ import {
   generateId,
   renumberPositions,
 } from '../shared/tree-utils';
+import { reconcileNodes } from '../shared/reconcile';
 
 let state: TabbyState;
 const sidebarPorts = new Set<browser.Runtime.Port>();
@@ -542,85 +543,17 @@ function checkExpiry(): void {
 // ── Reconciliation ──────────────────────────────────────────────────────
 
 function reconcile(realTabs: browser.Tabs.Tab[]): void {
-  const matchedRealTabIds = new Set<number>();
-  const matchedNodeIds = new Set<string>();
-
-  // Group real tabs by URL; sort duplicates by index for deterministic matching
-  const tabsByUrl = new Map<string, browser.Tabs.Tab[]>();
-  for (const tab of realTabs) {
-    const url = tab.url || '';
-    const list = tabsByUrl.get(url);
-    if (list) list.push(tab);
-    else tabsByUrl.set(url, [tab]);
-  }
-  for (const tabs of tabsByUrl.values()) {
-    tabs.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-  }
-
-  // Match saved tab nodes to real tabs by URL
-  const savedTabNodes = state.nodes.filter(
-    (n): n is TabNode => n.type === 'tab',
+  state.nodes = reconcileNodes(
+    state.nodes,
+    realTabs.map(t => ({
+      id: t.id!,
+      url: t.url || '',
+      title: t.title || '',
+      favIconUrl: t.favIconUrl || '',
+      status: t.status || 'complete',
+      index: t.index ?? 0,
+    })),
   );
-
-  for (const node of savedTabNodes) {
-    const candidates = tabsByUrl.get(node.url);
-    if (!candidates || candidates.length === 0) continue;
-
-    const tab = candidates.shift()!;
-    node.firefoxTabId = tab.id!;
-    node.title = tab.title || node.title;
-    node.favIconUrl = tab.favIconUrl || node.favIconUrl;
-    node.status = tab.status === 'loading' ? 'loading' : 'complete';
-    matchedRealTabIds.add(tab.id!);
-    matchedNodeIds.add(node.id);
-    if (candidates.length === 0) tabsByUrl.delete(node.url);
-  }
-
-  // Remove unmatched saved tab nodes, promoting their children
-  const unmatchedIds = new Set(
-    savedTabNodes.filter(n => !matchedNodeIds.has(n.id)).map(n => n.id),
-  );
-  for (const id of unmatchedIds) {
-    const node = state.nodes.find(n => n.id === id);
-    if (!node) continue;
-    for (const child of state.nodes) {
-      if (child.parentId === id) child.parentId = node.parentId;
-    }
-  }
-  state.nodes = state.nodes.filter(n => !unmatchedIds.has(n.id));
-
-  // Fix orphaned nodes whose parent was removed
-  const nodeIdSet = new Set(state.nodes.map(n => n.id));
-  for (const node of state.nodes) {
-    if (node.parentId !== null && !nodeIdSet.has(node.parentId)) {
-      node.parentId = null;
-    }
-  }
-
-  // Create ephemeral nodes for real tabs that weren't matched
-  const unmatchedTabs = realTabs.filter(t => !matchedRealTabIds.has(t.id!));
-  for (const tab of unmatchedTabs) {
-    const tabNode: TabNode = {
-      id: generateId(),
-      type: 'tab',
-      parentId: null,
-      zone: 'ephemeral',
-      position: getNextPosition(state.nodes, null, 'ephemeral'),
-      collapsed: false,
-      firefoxTabId: tab.id!,
-      url: tab.url || '',
-      title: tab.title || '',
-      customTitle: null,
-      favIconUrl: tab.favIconUrl || '',
-      anchorUrl: null,
-      status: tab.status === 'loading' ? 'loading' : 'complete',
-      lastActiveAt: Date.now(),
-    };
-    state.nodes.push(tabNode);
-  }
-
-  renumberPositions(state.nodes, null, 'permanent');
-  renumberPositions(state.nodes, null, 'ephemeral');
 }
 
 // ── Initialization ──────────────────────────────────────────────────────
