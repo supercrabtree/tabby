@@ -1,7 +1,14 @@
 import browser from 'webextension-polyfill';
 import type { TabbyState, TabNode, FolderNode, TreeNode } from '../shared/types';
 import type { Message } from '../shared/messages';
-import { loadState, debouncedSave } from '../shared/storage';
+import {
+  loadState,
+  saveState,
+  debouncedSave,
+  loadSessionState,
+  saveSessionState,
+  debouncedSessionSave,
+} from '../shared/storage';
 import {
   getSubtree,
   getRootNodes,
@@ -24,6 +31,7 @@ function broadcastState(): void {
     port.postMessage(msg);
   }
   debouncedSave(state);
+  debouncedSessionSave(state);
 }
 
 // ── Tab event handlers ──────────────────────────────────────────────────
@@ -561,17 +569,36 @@ function reconcile(realTabs: browser.Tabs.Tab[]): void {
 async function init(): Promise<void> {
   state = await loadState();
 
+  // If extension storage was cleared (e.g. temporary addon unload/reload),
+  // recover from the browser session store which survives addon removal.
+  if (state.nodes.length === 0) {
+    const sessionState = await loadSessionState();
+    if (sessionState) {
+      state = sessionState;
+    }
+  }
+
   const realTabs = await browser.tabs.query({ currentWindow: true });
   reconcile(realTabs);
 
   checkExpiry();
   setInterval(checkExpiry, 60_000);
 
+  // Persist reconciled state immediately so it survives a quick unload
+  saveState(state);
+  saveSessionState(state);
+
   browser.tabs.onCreated.addListener(handleTabCreated);
   browser.tabs.onRemoved.addListener(handleTabRemoved);
   browser.tabs.onUpdated.addListener(handleTabUpdated);
   browser.tabs.onActivated.addListener(handleTabActivated);
   browser.runtime.onConnect.addListener(handleConnect);
+
+  // Best-effort save when background is torn down (extension reload/disable)
+  addEventListener('beforeunload', () => {
+    saveState(state);
+    saveSessionState(state);
+  });
 }
 
 init();
