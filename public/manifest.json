@@ -30,8 +30,11 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "tabby@example.com",
-      "strict_min_version": "115.0"
+      "id": "{f61d5c21-26f2-4026-9ad6-b9d00fcb45d3}",
+      "strict_min_version": "115.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   }
 }

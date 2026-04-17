@@ -37,6 +37,36 @@ Load the extension in Firefox:
 3. Select any file inside the `dist/` folder
 4. Open the sidebar with **Alt+T** (or **Ctrl+T** on macOS)
 
+## Packaging
+
+### AMO (public listing)
+
+Build the unsigned zip and upload it through the [AMO developer dashboard](https://addons.mozilla.org/en-US/developers/):
+
+```bash
+npm run package
+# outputs web-ext-artifacts/tabby-0.1.0.zip
+```
+
+### Self-distributed signed .xpi
+
+Generate API credentials at the [AMO developer hub](https://addons.mozilla.org/en-US/developers/addon/api/key/), then:
+
+```bash
+WEB_EXT_API_KEY=your-jwt-issuer \
+WEB_EXT_API_SECRET=your-jwt-secret \
+npm run sign
+# outputs a signed .xpi in web-ext-artifacts/
+```
+
+### Linting
+
+Run Mozilla's extension linter to catch issues before submission:
+
+```bash
+npm run lint:ext
+```
+
 ## Project Structure
 
 ```

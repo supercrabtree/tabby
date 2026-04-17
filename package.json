@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "vite build && node scripts/build-background.js",
-    "clean": "rm -rf dist",
+    "package": "npm run build && web-ext build",
+    "sign": "npm run build && web-ext sign --channel unlisted",
+    "lint:ext": "web-ext lint",
+    "clean": "rm -rf dist web-ext-artifacts",
     "test": "npx playwright test"
   },
   "dependencies": {
@@ -19,6 +22,7 @@
     "esbuild": "^0.28.0",
     "svelte": "^5.55.4",
     "typescript": "^6.0.2",
-    "vite": "^8.0.8"
+    "vite": "^8.0.8",
+    "web-ext": "^10.1.0"
   }
 }
